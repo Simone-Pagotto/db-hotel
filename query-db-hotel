@@ -19,9 +19,25 @@ SELECT * FROM `ospiti` WHERE LEFT(`name`,1)= 'D';
 SELECT COUNT(*) FROM `pagamenti` WHERE `status` = 'accepted' 
 
 ●	Qual è il prezzo massimo pagato?
+
+ SELECT MAX(price) AS maxprice FROM pagamenti
+
+
 ●	Seleziona gli ospiti riconosciuti con patente e nati nel 1975
+
+SELECT * 
+FROM ospiti
+WHERE document_type = 'Driver License' && EXTRACT(YEAR FROM `date_of_birth`)= 1975
+
 ●	Quanti paganti sono anche ospiti?
+
+SELECT * FROM `paganti` WHERE `ospite_id` IS NOT NULL
+
 ●	Quanti posti letto ha l’hotel in totale?
+
+SELECT SUM(beds) FROM `stanze`
+
+--------------------------------------------------------------------------------------------------
 
 Group by
 ●	Conta gli ospiti raggruppandoli per anno di nascita
@@ -37,7 +53,20 @@ SELECT `status`,SUM(`price`) as cash FROM `pagamenti` GROUP BY `status`
 SELECT `stanza_id`,COUNT(*) as nprenotazioni FROM `prenotazioni` GROUP BY `stanza_id` 
 
 ●	Fai una analisi per vedere se ci sono ore in cui le prenotazioni sono più frequenti
+
+SELECT HOUR(created_at), COUNT(*) FROM `prenotazioni`
+GROUP BY HOUR(created_at)
+
 ●	Quante prenotazioni ha fatto l’ospite che ha fatto più prenotazioni?
+
+SELECT ospiti.name, ospiti.lastname, ospite_id, COUNT(*) AS numero_prenotazioni 
+FROM prenotazioni_has_ospiti
+INNER JOIN ospiti
+ON prenotazioni_has_ospiti.ospite_id=ospiti.id
+GROUP BY ospite_id
+HAVING numero_prenotazioni > 2
+
+------------------------------------------------------------------------------------------------
 
 Join
 ●	Come si chiamano gli ospiti che hanno fatto più di due prenotazioni?
@@ -67,6 +96,15 @@ ON pagamenti.pagante_id=paganti.id
 WHERE DATE_FORMAT(prenotazioni.created_at, '%Y_%m') = '2018_05'
 
 ●	Fai la somma di tutti i prezzi delle prenotazioni per le stanze del primo piano
+
+SELECT floor, SUM(price)
+FROM stanze
+INNER JOIN prenotazioni
+ON stanze.id=prenotazioni.stanza_id
+INNER JOIN pagamenti
+ON prenotazioni.id = pagamenti.prenotazione_id
+GROUP by floor
+
 ●	Prendi i dati di fatturazione per la prenotazione con id=7
 ●	Le stanze sono state tutte prenotate almeno una volta? (Visualizzare le stanze non ancora prenotate)
 
